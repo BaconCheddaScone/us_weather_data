@@ -8,34 +8,9 @@ import plotly.express as px
 # https://www.ncdc.noaa.gov/cdo-web/datatools/findstation
 
 
-
-
-
-
-#--------------------------- GET ALL LOCATIONS ---------------------------
-
-# headers = {"token": "HBrWGVsmxCgKISdRQWmntVJVRFSTsCeN"}
-# station_endpoint = "https://www.ncei.noaa.gov/cdo-web/api/v2/stations"
-# station_param = {"datasetid":"GHCND",
-#                  "limit":1000,
-#                  }
-#
-#
-# response = requests.get(url=station_endpoint, headers=headers, params=station_param)
-# response.raise_for_status()
-# station_data = response.json()
-#
-# print(station_data["results"])
-# orig_station_df = pd.DataFrame(station_data["results"])
-#
-# # print(orig_station_df[orig_station_df["id"].str.contains("GHCND", na=False)].head())
-#
-# station_df = orig_station_df[orig_station_df["id"].str.contains("GHCND", na=False)]
-# station_df = station_df[["id","name"]].drop_duplicates()
-#
-# print(station_df.head())
-
-
+#--------------------------- PAGE SET UP ---------------------------
+## Page expands to full width
+st.set_page_config(layout="wide")
 
 
 
@@ -82,29 +57,32 @@ def get_data(station):
 
     return df_final
 
-selection_station = st.sidebar.text_input("Enter Station Name","USC00111550")
-selection_year = st.sidebar.multiselect(label="Select a year",options=list(reversed(range(2015,2023))), default=[2022])
+
+#--------------------------- SIDEBAR ---------------------------
+
+
+selection_station = st.sidebar.text_input("Enter Station ID","USC00111550")
+selection_year = st.sidebar.multiselect(label="Select desired year(s)",options=list(reversed(range(2015,2023))), default=[2022])
 selection_month = st.sidebar.selectbox("Select a month",list(range(1,13)))
 
-if selection_station:
+if selection_station and selection_year:
     df = get_data(selection_station)
     print(df.head())
 
-
 #--------------------------- SET UP MAIN DASHBOARD ---------------------------
 
-st.title("History of Chicago's Highest Temperatures")
-st.markdown("""## Because we want to know how blazing hot it has been since 2015""")
-st.markdown("""### And we want to see it all pretty""")
+st.title("Daily Max Temperatures")
+st.header("""See how hot each day has been and compare across the years""")
 st.markdown("""Data is available thanks to the **National Centers for Environmental Information**, 
 a division of the National Oceanic and Atmospheric Administration""")
 
-st.markdown("""### Use the sidebar""")
+st.markdown("""### How to use this tool""")
 st.markdown("""
+- Use the sidebar (on mobile, click the arrow on the top left-hand corner) \n
+- Find a station id [here](https://www.ncdc.noaa.gov/cdo-web/datatools/findstation) \n
 - Select at least one year.\n
 - Select a month.\n
 - Select multiple years to conduct a year-over-year analysis.\n
-- If you're on mobile, click on the arrow found on the top left-hand corner.
 """)
 
 #--------------------------- SET UP CHART AREA---------------------------
@@ -115,25 +93,30 @@ df_filtered = df.loc[(df["YEAR"].isin(selection_year))
 
 
 
-
-st.markdown("""### Voila!""")
-
-
-
+st.header("Voila!")
 chart = px.line(
-    x = df_filtered["DATE"].dt.day,
-    y = df_filtered["MAX_TEMP_F"],
-    color = df_filtered["DATE"].dt.year,
-    hover_name = df_filtered["DATE"].dt.date,
-    markers = True,
-    labels = {
-        "x":"Day of Month",
-        "y":"Daily Temperature High (Fahrenheit)",
-        "color":"Year"
+    x=df_filtered["DATE"].dt.day,
+    y=df_filtered["MAX_TEMP_F"],
+    color=df_filtered["DATE"].dt.year,
+    hover_name=df_filtered["DATE"].dt.date,
+    markers=True,
+    labels={
+        "x": "Day of Month",
+        "y": "Daily Temperature High (Fahrenheit)",
+        "color": "Year"
     }
 )
-
 st.plotly_chart(chart)
+
+
+
+
+
+
+
+
+
+
 
 
 
