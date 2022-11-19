@@ -88,7 +88,7 @@ if selection_station and selection_year:
 
 st.title("Weather We Come")
 st.header("""See how hot each day has been and compare across the years""")
-st.markdown("""Data is available thanks to the **National Centers for Environmental Information**, 
+st.markdown("""Data is available thanks to the **[National Centers for Environmental Information](https://www.ncei.noaa.gov/)**
 a division of the National Oceanic and Atmospheric Administration""")
 
 st.header("How to use this tool")
