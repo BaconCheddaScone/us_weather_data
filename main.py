@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+import base64
 
 
 # https://www.ncei.noaa.gov/access/search/data-search/daily-summaries
@@ -58,10 +59,20 @@ def get_data(station):
     return df_final
 
 
+#--------------------------- FILE DOWNLOAD ---------------------------
+
+def filedownload(df):
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()
+    href = f'<a href="data:file/csv;base64,{b64}" download="weather.csv">Download CSV File</a>'
+    return href
+
+
+
 #--------------------------- SIDEBAR ---------------------------
 
 
-selection_station = st.sidebar.text_input("Enter Station ID","USC00111550")
+selection_station = st.sidebar.text_input("Enter a Weather Station ID","USC00111550")
 selection_year = st.sidebar.multiselect(label="Select desired year(s)",options=list(reversed(range(2015,2023))), default=[2022])
 selection_month = st.sidebar.selectbox("Select a month",list(range(1,13)))
 
@@ -71,12 +82,12 @@ if selection_station and selection_year:
 
 #--------------------------- SET UP MAIN DASHBOARD ---------------------------
 
-st.title("Daily Max Temperatures")
+st.title("Weather We Come")
 st.header("""See how hot each day has been and compare across the years""")
 st.markdown("""Data is available thanks to the **National Centers for Environmental Information**, 
 a division of the National Oceanic and Atmospheric Administration""")
 
-st.markdown("""### How to use this tool""")
+st.header("How to use this tool")
 st.markdown("""
 - Use the sidebar (on mobile, click the arrow on the top left-hand corner) \n
 - Find a station id [here](https://www.ncdc.noaa.gov/cdo-web/datatools/findstation) \n
@@ -93,7 +104,7 @@ df_filtered = df.loc[(df["YEAR"].isin(selection_year))
 
 
 
-st.header("Voila!")
+st.header("Weather Chart")
 chart = px.line(
     x=df_filtered["DATE"].dt.day,
     y=df_filtered["MAX_TEMP_F"],
@@ -107,7 +118,7 @@ chart = px.line(
     }
 )
 st.plotly_chart(chart)
-
+st.markdown(filedownload(df_filtered), unsafe_allow_html=True)
 
 
 
