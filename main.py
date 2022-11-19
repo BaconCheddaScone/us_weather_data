@@ -49,12 +49,17 @@ def get_data(station):
     df_modified.rename(columns={"TMAX": "MAX_TEMP_F"}, inplace=True)
 
     # Take the avg of all Chicago stations to deem that the Max Temperature of that day.
-    df_final = df_modified.groupby(["DATE"], as_index=0).agg({"MAX_TEMP_F": "mean"})
+    # df_final = df_modified.groupby(["DATE"], as_index=0).agg({"MAX_TEMP_F": "mean"})
 
+    # we're entering ONE STATION so no need for group by
+    df_final = df_modified
     # Insert new columns you may find useful - might not be necessarsy
     df_final.insert(loc=1, column="YEAR", value=df_final["DATE"].dt.year)
     df_final.insert(loc=2, column="MONTH", value=df_final["DATE"].dt.month)
     df_final.insert(loc=3, column="DAY", value=df_final["DATE"].dt.day)
+
+    print(df_final.columns)
+
 
     return df_final
 
@@ -66,7 +71,6 @@ def filedownload(df):
     b64 = base64.b64encode(csv.encode()).decode()
     href = f'<a href="data:file/csv;base64,{b64}" download="weather.csv">Download CSV File</a>'
     return href
-
 
 
 #--------------------------- SIDEBAR ---------------------------
@@ -103,8 +107,17 @@ df_filtered = df.loc[(df["YEAR"].isin(selection_year))
                            & (df["MONTH"] == selection_month)]
 
 
+# Bring in city name of Station.
+city_name = str(df_filtered.NAME.unique())
+
+#remove the [' '] around the NAME.
+for char in city_name:
+    if char in "[']":
+        city_name = city_name.replace(char, "")
+
 
 st.header("Weather Chart")
+st.write("Displaying data for " + city_name)
 chart = px.line(
     x=df_filtered["DATE"].dt.day,
     y=df_filtered["MAX_TEMP_F"],
