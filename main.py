@@ -94,7 +94,7 @@ a division of the National Oceanic and Atmospheric Administration""")
 st.header("How to use this tool")
 st.markdown("""
 - Use the sidebar (on mobile, click the arrow on the top left-hand corner) \n
-- Find a station id [here](https://www.ncdc.noaa.gov/cdo-web/datatools/findstation) \n
+- Find your weather station id [here](https://www.ncdc.noaa.gov/cdo-web/datatools/findstation) \n
 - Select at least one year.\n
 - Select a month.\n
 - Select multiple years to conduct a year-over-year analysis.\n
