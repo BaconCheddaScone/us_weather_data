@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "us-weather-data"
+version = "0.1.0"
+description = "Tracking the changes in Weather Data starting with the U.S.A."
+authors = ["Sooj Youn"]
+readme = "README.md"
+packages = [{include = "us_weather_data"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
