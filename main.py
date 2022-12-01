@@ -250,7 +250,9 @@ chart = px.line(
         "x": "Day of Month",
         "y": "Daily Temperature High (Fahrenheit)",
         "color": "Year"
-    }
+    },
+    width=1000,
+    height=600,
 )
 st.plotly_chart(chart)
 st.markdown(filedownload(df_filtered), unsafe_allow_html=True)
