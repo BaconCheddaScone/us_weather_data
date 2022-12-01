@@ -5,8 +5,6 @@ import plotly.express as px
 import base64
 import sqlite3
 from sqlite3 import Error
-import leafmap
-import geopandas as gpd
 
 
 
