@@ -246,8 +246,8 @@ if selection_station_id and selection_year:
             "y": "Daily Temperature High (Fahrenheit)",
             "color": "Year"
         },
-        width=1000,
-        height=600,
+#         width=1000,
+#         height=600,
     )
 
     st.plotly_chart(chart)
