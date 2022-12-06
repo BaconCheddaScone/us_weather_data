@@ -185,7 +185,7 @@ else:
 # station_list = [item for item in result_db["station_name"]]
 # selection_station_name = st.sidebar.selectbox("Select one Weather Station your area:", options=station_list)
 
-selection_station_id = st.sidebar.text_input("Copy & paste desired Weather Station ID from above","USC00111550")
+selection_station_id = st.sidebar.text_input("Copy & paste desired Weather Station ID from above")
 
 # selection_station_id = result_db["station_id"][result_db.station_name == selection_station_name][1]
 # st.write(selection_station_id)
