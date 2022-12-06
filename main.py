@@ -5,7 +5,8 @@ import plotly.express as px
 import base64
 import sqlite3
 from sqlite3 import Error
-
+import leafmap
+import geopandas as gpd
 
 
 
@@ -27,6 +28,7 @@ def create_connection(path):
 
 #--------------------- SQL SELECT RECORDS ---------------------#
 
+# TODO 3: Go back to SQL table and look for PR (Puerto Rico)
 def execute_read_query(connection, query):
     cursor = connection.cursor()
     result = None
@@ -98,17 +100,21 @@ def filedownload(df):
 # First, run the method to connnect to SQL db
 connection = create_connection("ncei.db")
 
-states_avail = reversed(["WI","WV","WA","VA","VT","UT","TX","TN","SD","SC","RI","PA","OR","OK","OH","ND","NC","NY","NM",
+
+# TODO 1: Update List to WI(Wisconsin) OR typed out Two letters. explore User experience. OR make it a dictionary.
+states_avail = sorted(["WI","WV","WA","VA","VT","UT","TX","TN","SD","SC","RI","PA","OR","OK","OH","ND","NC","NY","NM",
                          "NJ","NH","NV","NE","MT","MO","MS","MN","MI","MA","MD","ME","LA","KY","KS","IA","IN","IL","ID",
                          "HI","GA","FL","DE","CT","CO","CA","AR","AZ","AK","AL"])
 # Next, grab user inputs from streamlit sidebar
 user_input_state = st.sidebar.selectbox("Select a state", states_avail)
-user_input_city = st.sidebar.text_input("Enter a city")
+
+# TODO 2: remove this part and just say "HERE ARE ALL THE AVAIL STATIONS"
+# user_input_city = st.sidebar.text_input("Enter a city")
 
 # This is the query I'd use in SQL to just fetch the data with filters from user input.
 # I'm actually pulling from a View instead of a table.
 select_query = f"SELECT * FROM 'USC_GHCND_summary_vw' " \
-               f"WHERE station_name like '%{user_input_city}%' AND state = '{user_input_state}'"
+               f"WHERE state = '{user_input_state}'"
 
 # This runs the method to fetch all relevant data.
 
@@ -127,7 +133,7 @@ if query_result != None:
         dict = [{"station_id":a[0],"station_name":a[1], "state":a[2], "element_type":a[3], "latitude":a[4],
                  "longitude":a[5],"begin_date":a[6],"end_date":a[7]} for a in query_result]
     except:
-        print("I dunno man. I dunno")
+        print("Oops, something in SQL went wrong. ")
 
     # Use this as a test to verify whether data is pulling in.
     # After it all appear to work, comment these out.
@@ -149,8 +155,6 @@ if query_result != None:
     # st.write("This shows the datatype of the latitude column. I need to make that a str in order to pass it into a map library")
     # st.write(type(result_db["latitude"]))
     #
-
-
 else:
     st.sidebar.text("Sorry, please try again")
 
@@ -192,12 +196,6 @@ selection_station_id = st.sidebar.text_input("Copy & paste desired Weather Stati
 selection_year = st.sidebar.multiselect(label="Select desired year(s)",options=list(reversed(range(2015,2023))), default=[2022, 2021, 2020, 2019])
 selection_month = st.sidebar.selectbox("Select a month",list(range(1,13)))
 
-if selection_station_id and selection_year:
-    df = get_data(selection_station_id)
-    # print(df.head())
-
-
-
 #--------------------------- SET UP MAIN DASHBOARD ---------------------------
 
 st.title("Weather We Come")
@@ -217,45 +215,54 @@ with st.expander("💡How to use this tool"):
     - You can even download the raw data file as a .csv!
     """)
 
+
+# Make the chart run
+
+if selection_station_id and selection_year:
+    df = get_data(selection_station_id)
+    # print(df.head())
+    # --------------------------- SET UP CHART AREA---------------------------
+
+    # Create new DF filtered for the selections made
+    df_filtered = df.loc[(df["YEAR"].isin(selection_year))
+                         & (df["MONTH"] == selection_month)]
+
+    # Bring in city name of Station.
+    city_name = str(df_filtered.NAME.unique())
+
+    # remove the [' '] around the NAME.
+    for char in city_name:
+        if char in "[']":
+            city_name = city_name.replace(char, "")
+
+    st.header("Weather Chart")
+    st.write("Displaying data for " + city_name)
+    chart = px.line(
+        x=df_filtered["DATE"].dt.day,
+        y=df_filtered["MAX_TEMP_F"],
+        color=df_filtered["DATE"].dt.year,
+        hover_name=df_filtered["DATE"].dt.date,
+        markers=True,
+        labels={
+            "x": "Day of Month",
+            "y": "Daily Temperature High (Fahrenheit)",
+            "color": "Year"
+        },
+        width=1000,
+        height=600,
+    )
+
+    st.plotly_chart(chart)
+    st.markdown(filedownload(df_filtered), unsafe_allow_html=True)
+else:
+    st.subheader("💡Please use the sidebar menu to make your selections")
+
+
 # st.expander(label=st.header("How to use this tool"))
 # st.header("How to use this tool")
 
 
 
-#--------------------------- SET UP CHART AREA---------------------------
-
-# Create new DF filtered for the selections made
-df_filtered = df.loc[(df["YEAR"].isin(selection_year))
-                           & (df["MONTH"] == selection_month)]
-
-
-# Bring in city name of Station.
-city_name = str(df_filtered.NAME.unique())
-
-#remove the [' '] around the NAME.
-for char in city_name:
-    if char in "[']":
-        city_name = city_name.replace(char, "")
-
-
-st.header("Weather Chart")
-st.write("Displaying data for " + city_name)
-chart = px.line(
-    x=df_filtered["DATE"].dt.day,
-    y=df_filtered["MAX_TEMP_F"],
-    color=df_filtered["DATE"].dt.year,
-    hover_name=df_filtered["DATE"].dt.date,
-    markers=True,
-    labels={
-        "x": "Day of Month",
-        "y": "Daily Temperature High (Fahrenheit)",
-        "color": "Year"
-    },
-    width=1000,
-    height=600,
-)
-st.plotly_chart(chart)
-st.markdown(filedownload(df_filtered), unsafe_allow_html=True)
 
 
 
