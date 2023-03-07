@@ -5,8 +5,19 @@ import plotly.express as px
 import base64
 import sqlite3
 from sqlite3 import Error
+import leafmap.foliumap as leafmap
+from datetime import date, timedelta
 
+#--------------------------- DATE LOGISTICS ---------------------------
+today = date.today()
+year = date.today().year
+month = date.today().month
+day = date.today().day
 
+yesterday = today - timedelta(days = 1)
+# print(year, month, day)
+# print(yesterday)
+# print(today)
 
 #--------------------------- PAGE SET UP ---------------------------
 ## Page expands to full width
@@ -18,7 +29,7 @@ def create_connection(path):
     connection = None
     try:
         connection = sqlite3.connect(path)
-        print("Connection to SQLite DB succesful")
+        print("Connection to SQLite DB successful")
     except Error as e:
         print(f"The error {e} occurred")
 
@@ -51,7 +62,7 @@ def get_data(station):
         "dataset": "daily-summaries",
         "stations": [f"{station}"], #this is the station ID
         "startDate": "2015-01-01",
-        "endDate": "2022-10-31",
+        "endDate": yesterday,
         "bbox": "-171.791110603, 18.91619, -66.96466, 71.3577635769",
         "format": "json",
         "includeAttributes": 0,
@@ -94,7 +105,7 @@ def filedownload(df):
     return href
 
 
-#--------------------------- SIDEBAR ADDITIONAL ---------------------------
+#--------------------------- SIDEBAR: DATA PRE-PROCESSING METHODS ---------------------------
 # First, run the method to connnect to SQL db
 connection = create_connection("ncei.db")
 
@@ -157,45 +168,41 @@ else:
     st.sidebar.text("Sorry, please try again")
 
 
-#---------------------------------------- MAP ATTEMPT 2 --------------------------------------#
-
-# map = leafmap.Map(google_map="HYBRID")
-# st.map(map)
-# map.add_points_from_xy(data=result_db, x=longitude, y=latitude)
-# map.to_streamlit(height=500)
-
-
-#---------------------------------------- MAP ATTEMPT 1 --------------------------------------#
-# From query_result, tap into the station name & lat/long.
-# Turn that into a
-
-# map_df = pd.DataFrame(
-#     data = [[-89.24, 37.78]],
-#     columns = ["longitude", "latitude"]
-# )
-#
-# print(map_df)
-# st.sidebar.map(map_df)
+#---------------------------------------- MAP ATTEMPT 3 --------------------------------------#
 
 
 
 
-#--------------------------- SIDEBAR MAIN ---------------------------
-# If going for drop-down method. 
-# station_list = [item for item in result_db["station_name"]]
-# selection_station_name = st.sidebar.selectbox("Select one Weather Station your area:", options=station_list)
+#--------------------------- SIDEBAR: THE REST OF IT---------------------------
+with st.sidebar:
+    # ------ THE MAP! ----
+    st.write("""You can look inside the map for a desired location as well""")
+    m = leafmap.Map(center=(40, -100), zoom=3)
+    m.add_basemap("OpenStreetMap")
+    popup = ["station_id", "station_name"]
+    m.add_circle_markers_from_xy(result_db, longitude='longitude', latitude='latitude', popup=popup)
+    m.to_streamlit(height=300, width=450)
 
-selection_station_id = st.sidebar.text_input("Copy & paste desired Weather Station ID from above")
+    # If going for drop-down method.
+    # station_list = [item for item in result_db["station_name"]]
+    # selection_station_name = st.sidebar.selectbox("Select one Weather Station your area:", options=station_list)
 
-# selection_station_id = result_db["station_id"][result_db.station_name == selection_station_name][1]
-# st.write(selection_station_id)
+    selection_station_id = st.text_input("Copy & paste desired Weather Station ID from above")
+
+    # selection_station_id = result_db["station_id"][result_db.station_name == selection_station_name][1]
+    # st.write(selection_station_id)
+
+    selection_year = st.multiselect(label="Select desired year(s)", options=list(reversed(range(2015, year+1))),
+                                            default=[year, year-1, year-2, year-3, year-4])
+    selection_month = st.selectbox("Select a month", list(range(1, 13)))
 
 
-selection_year = st.sidebar.multiselect(label="Select desired year(s)",options=list(reversed(range(2015,2023))), default=[2022, 2021, 2020, 2019])
-selection_month = st.sidebar.selectbox("Select a month",list(range(1,13)))
 
 #--------------------------- SET UP MAIN DASHBOARD ---------------------------
-
+st.write(
+    f'<span style="font-size: 78px; line-height: 1">🌈️⚡️❄️🌧️☀️</span>',
+    unsafe_allow_html=True,
+)
 st.title("Weather We Come")
 st.header("""See how hot each day has been and compare across the years""")
 st.markdown("""Data is available thanks to the **[National Centers for Environmental Information](https://www.ncei.noaa.gov/)**
@@ -246,30 +253,11 @@ if selection_station_id and selection_year:
             "y": "Daily Temperature High (Fahrenheit)",
             "color": "Year"
         },
-#         width=1000,
-#         height=600,
+        # width=1000,
+        # height=600,
     )
 
     st.plotly_chart(chart)
     st.markdown(filedownload(df_filtered), unsafe_allow_html=True)
 else:
     st.subheader("💡Please use the sidebar menu to make your selections")
-
-
-# st.expander(label=st.header("How to use this tool"))
-# st.header("How to use this tool")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
