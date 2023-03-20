@@ -25,6 +25,7 @@ st.set_page_config(layout="wide")
 
 
 #--------------------- SQL CONNECTION SET UP ---------------------#
+
 def create_connection(path):
     connection = None
     try:
@@ -106,24 +107,37 @@ def filedownload(df):
 
 
 #--------------------------- SIDEBAR: DATA PRE-PROCESSING METHODS ---------------------------
-# First, run the method to connnect to SQL db
+# First, run the method to connect to SQL db
 connection = create_connection("ncei.db")
 
 
 # TODO 1: Update List to WI(Wisconsin) OR typed out Two letters. explore User experience. OR make it a dictionary.
-states_avail = sorted(["WI","WV","WA","VA","VT","UT","TX","TN","SD","SC","RI","PA","OR","OK","OH","ND","NC","NY","NM",
-                         "NJ","NH","NV","NE","MT","MO","MS","MN","MI","MA","MD","ME","LA","KY","KS","IA","IN","IL","ID",
-                         "HI","GA","FL","DE","CT","CO","CA","AR","AZ","AK","AL"])
+states_avail = sorted(['Wisconsin', 'West Virginia', 'Washington', 'Virginia', 'Vermont', 'Utah', 'Texas', 'Tennessee',
+                       'South Dakota', 'South Carolina', 'Rhode Island', 'Pennsylvania', 'Oregon', 'Oklahoma', 'Ohio',
+                       'North Dakota', 'North Carolina', 'New York', 'New Mexico', 'New Jersey', 'New Hampshire',
+                       'Nevada', 'Nebraska', 'Montana', 'Missouri', 'Mississippi', 'Minnesota', 'Michigan',
+                       'Massachussettes', 'Maryland', 'Maine', 'Louisiana', 'Kentucky', 'Kansas', 'Iowa', 'Indiana',
+                       'Illinois', 'Idaho', 'Hawaii', 'Georgia', 'Florida', 'Delaware', 'Connecticut', 'Colorado',
+                       'California', 'Arkansas', 'Arizona', 'Alaska', 'Alabama'])
+
+states_dict = {'Wisconsin':'WI', 'West Virginia':'WV', 'Washington':'WA', 'Virginia':'VA', 'Vermont':'VT', 'Utah':'UT',
+               'Texas':'TX', 'Tennessee':'TN', 'South Dakota':'SD', 'South Carolina':'SC', 'Rhode Island':'RI',
+               'Pennsylvania':'PA', 'Oregon':'OR', 'Oklahoma':'OK', 'Ohio':'OH', 'North Dakota':'ND',
+               'North Carolina':'NC', 'New York':'NY', 'New Mexico':'NM', 'New Jersey':'NJ', 'New Hampshire':'NH',
+               'Nevada':'NV', 'Nebraska':'NE', 'Montana':'MT', 'Missouri':'MO', 'Mississippi':'MS', 'Minnesota':'MN',
+               'Michigan':'MI', 'Massachussettes':'MA', 'Maryland':'MD', 'Maine':'ME', 'Louisiana':'LA',
+               'Kentucky':'KY', 'Kansas':'KS', 'Iowa':'IA', 'Indiana':'IN', 'Illinois':'IL', 'Idaho':'ID',
+               'Hawaii':'HI', 'Georgia':'GA', 'Florida':'FL', 'Delaware':'DE', 'Connecticut':'CT', 'Colorado':'CO',
+               'California':'CA', 'Arkansas':'AR', 'Arizona':'AZ', 'Alaska':'AK', 'Alabama':'AL'}
 # Next, grab user inputs from streamlit sidebar
 user_input_state = st.sidebar.selectbox("Select a state", states_avail)
 
-# TODO 2: remove this part and just say "HERE ARE ALL THE AVAIL STATIONS"
-# user_input_city = st.sidebar.text_input("Enter a city")
+# Convert Full state name to Two Letter Postal Code
+state_code = states_dict[user_input_state]
 
-# This is the query I'd use in SQL to just fetch the data with filters from user input.
-# I'm actually pulling from a View instead of a table.
+
 select_query = f"SELECT * FROM 'USC_GHCND_summary_vw' " \
-               f"WHERE state = '{user_input_state}'"
+               f"WHERE state = '{state_code}'"
 
 # This runs the method to fetch all relevant data.
 
@@ -166,10 +180,6 @@ if query_result != None:
     #
 else:
     st.sidebar.text("Sorry, please try again")
-
-
-#---------------------------------------- MAP ATTEMPT 3 --------------------------------------#
-
 
 
 
